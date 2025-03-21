@@ -1,7 +1,10 @@
 import mmap
 from time import perf_counter
 # from statistics import mean
+import math
 
+def round_to_infinity(x):
+    return math.ceil(x * 10) / 10
 dic:dict = {}
 output_arr:list = []
 
@@ -37,7 +40,7 @@ def processline(line: str) -> None:
 
 def processline1(key, val) -> str:
     global output_arr
-    output_arr.append(f"{key}={round(val['min'],1)}/{round(val['mean'],1)}/{round(val['max'],1)}\n")
+    output_arr.append(f"{key}={round_to_infinity(val['min'],1)}/{round_to_infinity(val['mean'],1)}/{round_to_infinity(val['max'],1)}\n")
     return
 
 def sort_arr() -> None:
