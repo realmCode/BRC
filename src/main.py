@@ -40,7 +40,7 @@ def processline(line: str) -> None:
 
 def processline1(key, val) -> str:
     global output_arr
-    output_arr.append(f"{key}={round_to_infinity(val['min'],1)}/{round_to_infinity(val['mean'],1)}/{round_to_infinity(val['max'],1)}\n")
+    output_arr.append(f"{key}={round_to_infinity(val['min'])}/{round_to_infinity(val['mean'])}/{round_to_infinity(val['max'])}\n")
     return
 
 def sort_arr() -> None:
