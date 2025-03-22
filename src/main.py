@@ -78,18 +78,24 @@ def process_chunk_threaded(lines, thread_workers=8):
             merge_dicts(merged_local, partial)
     return merged_local
 
+# this is line by line
 def write_output(merged, output_file):
     if os.path.exists("output.txt"):
         os.remove("output.txt")
-    with open(output_file, "a+") as f:
-        for key in sorted(merged.keys(), key=lambda k: k.decode('utf-8')):
+    with open(output_file, "+a") as f:
+        for key in sorted(merged.keys()):
             rec = merged[key]
             mean_val = rec[3] / rec[2]
-            f.write(f"{key.decode('utf-8')}={round_to_infinity(rec[0])}/"
-                    f"{round_to_infinity(mean_val)}/"
-                    f"{round_to_infinity(rec[1])}\n")
+            f.write(f"{key.decode()}={round_to_infinity(rec[0])}/{round_to_infinity(mean_val)}/{round_to_infinity(rec[1])}\n")
 
-def main(input_file="testcase.txt", output_file="output.txt", proc_workers=None, chunk_size=100000, thread_workers=16):
+# this is all at once
+# def write_output(merged, output_file):
+#     if os.path.exists("output.txt"):
+#         os.remove("output.txt")
+#     with open(output_file, "+a") as f:
+#         f.write("".join(f"{key.decode()}={round_to_infinity(merged[key][0])}/{round_to_infinity(merged[key][3] / merged[key][2])}/{round_to_infinity(merged[key][1])}\n" for key in sorted(merged.keys())))
+
+def main(input_file="testcase.txt", output_file="output.txt", proc_workers=8, chunk_size=100000, thread_workers=16):
     if proc_workers is None:
         proc_workers = os.cpu_count() or 4
 
@@ -112,3 +118,4 @@ def main(input_file="testcase.txt", output_file="output.txt", proc_workers=None,
 
 if __name__ == '__main__':
     main()
+    # print("patch")

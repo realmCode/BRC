@@ -94,6 +94,25 @@ def main(input_file="testcase.txt", output_file="output.txt", workers=None, chun
 
     write_output(merged_results, output_file)
     print("Total processing time:", perf_counter() - start_total)
+    
+def main(input_file="testcase.txt", output_file="output.txt", workers=None, chunk_size=4**6):
+    if workers is None:
+        workers = os.cpu_count() or 4
+
+    start_total = perf_counter()
+    merged_results = {}
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = []
+        for chunk in chunked_reader(input_file, chunk_size):
+            futures.append(executor.submit(process_chunk, chunk))
+        
+        for future in as_completed(futures):
+            partial_result = future.result()
+            merge_dicts(merged_results, partial_result)
+
+    write_output(merged_results, output_file)
+    print("Total processing time:", perf_counter() - start_total)
 
 if __name__ == '__main__':
     main()
