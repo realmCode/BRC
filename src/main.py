@@ -83,14 +83,21 @@ def main():
         futures = [executor.submit(process_chunk, input_filename, start, end)for start, end in offsets]
         global_stats = merge_dicts( [future.result() for future in concurrent.futures.as_completed(futures)])
 
-    out_lines = []
-    for city in sorted(global_stats.keys()):
-        gmin, gmax, gsum, gcount = global_stats[city]
-        mean = gsum / gcount
-        # out_line = f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}"
-        # out_lines.append(out_line)
-        # let not store in var
-        out_lines.append(f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}")
+    # out_lines = []
+    # for city in sorted(global_stats.keys()):
+    #     gmin, gmax, gsum, gcount = global_stats[city]
+    #     mean = gsum / gcount
+    #     # out_line = f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}"
+    #     # out_lines.append(out_line)
+    #     # let not store in var
+    #     out_lines.append(f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}")
+
+    #again fucking list comphrehension
+    
+    out_lines = [
+        f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(gsum/gcount):.1f}/{round_to_infinity(gmax):.1f}"
+        for city, (gmin, gmax, gsum, gcount) in sorted(global_stats.items())
+    ]
 
     with open(output_filename, "w") as outf:
         outf.write("\n".join(out_lines))
