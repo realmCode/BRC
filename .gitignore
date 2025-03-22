@@ -10,3 +10,7 @@ venv
 */status.*
 */main_*.py
 /output/
+/src/testcase.txt
+/src/output.txt
+testcase.txt
+output.txt

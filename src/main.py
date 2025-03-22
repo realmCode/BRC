@@ -1,68 +1,99 @@
-import mmap
-from time import perf_counter
 import math
-from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import cpu_count
+import os
+from time import perf_counter
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import mmap
 
 def round_to_infinity(x):
     return math.ceil(x * 10) / 10
 
-def read(filename: str):
-    with open(filename, "rb") as file:
-        with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as file_map:
-            file_data = file_map.read()
-    return file_data
-
 def process_chunk(lines):
+    """
+    Processes a list of lines (each a bytestring) and returns a dictionary mapping keys to
+    [min, max, count, sum] for the associated values.
+    """
     local_dic = {}
     for line in lines:
-        parts = line.split(";")
-        key = parts[0]
-        val = float(parts[1])
+        if not line:  # skip empty lines
+            continue
+        # Partition the line at the first occurrence of b';'
+        key, sep, val_bytes = line.partition(b';')
+        try:
+            val = float(val_bytes)
+        except ValueError:
+            continue  # skip if the value cannot be parsed
         if key in local_dic:
             rec = local_dic[key]
-            rec['min'] = min(rec['min'], val)
-            rec['max'] = max(rec['max'], val)
-            rec['count'] += 1
-            rec['sum'] += val
+            rec[0] = min(rec[0], val)  # update min
+            rec[1] = max(rec[1], val)  # update max
+            rec[2] += 1              # increment count
+            rec[3] += val            # add to sum
         else:
-            local_dic[key] = {'min': val, 'max': val, 'count': 1, 'sum': val}
+            local_dic[key] = [val, val, 1, val]
     return local_dic
 
-def merge_dicts(dict_list):
-    merged = {}
-    for d in dict_list:
-        for key, rec in d.items():
-            if key in merged:
-                m = merged[key]
-                m['min'] = min(m['min'], rec['min'])
-                m['max'] = max(m['max'], rec['max'])
-                m['count'] += rec['count']
-                m['sum'] += rec['sum']
-            else:
-                merged[key] = rec.copy()
-    return merged
+def merge_dicts(target, source):
+    """
+    Merge the source dictionary into the target dictionary.
+    Each dictionary maps keys to [min, max, count, sum].
+    """
+    for key, rec in source.items():
+        if key in target:
+            m = target[key]
+            m[0] = min(m[0], rec[0])
+            m[1] = max(m[1], rec[1])
+            m[2] += rec[2]
+            m[3] += rec[3]
+        else:
+            target[key] = rec
+    return target
 
-def write_output(dic, output_file):
+def chunked_reader(filename, chunk_size=100000):
+    with open(filename, "rb") as f:
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            chunk = []
+            line = mm.readline()
+            while line:
+                # Remove trailing newline characters
+                chunk.append(line.rstrip(b'\n'))
+                if len(chunk) >= chunk_size:
+                    yield chunk
+                    chunk = []
+                line = mm.readline()
+            if chunk:
+                yield chunk
+
+def write_output(merged, output_file):
+    """
+    Writes the final merged results to the output file.
+    The keys (stored as bytes) are decoded to UTF-8.
+    """
     with open(output_file, "w") as f:
-        for key in sorted(dic.keys()):
-            rec = dic[key]
-            mean_val = rec['sum'] / rec['count']
-            f.write(f"{key}={round_to_infinity(rec['min'])}/{round_to_infinity(mean_val)}/{round_to_infinity(rec['max'])}\n")
+        for key in sorted(merged.keys(), key=lambda k: k.decode('utf-8')):
+            rec = merged[key]
+            mean_val = rec[3] / rec[2]
+            f.write(f"{key.decode('utf-8')}={round_to_infinity(rec[0])}/"
+                    f"{round_to_infinity(mean_val)}/"
+                    f"{round_to_infinity(rec[1])}\n")
 
-def main(input_file="testcase.txt", output_file="output.txt", workers=8):
-    data = read(input_file).decode().strip().splitlines()
-    #lets fuckinh  Divide the file into chunks for each process like britisher
-    chunk_size = len(data) // workers + 1
-    chunks = [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
-    
+def main(input_file="testcase.txt", output_file="output.txt", workers=None, chunk_size=4**6):
+    if workers is None:
+        workers = os.cpu_count() or 4
+
+    start_total = perf_counter()
+    merged_results = {}
+
     with ProcessPoolExecutor(max_workers=workers) as executor:
-        partial_results = list(executor.map(process_chunk, chunks))
-    
-    final_dic = merge_dicts(partial_results)
-    write_output(final_dic, output_file)
+        futures = []
+        for chunk in chunked_reader(input_file, chunk_size):
+            futures.append(executor.submit(process_chunk, chunk))
+        
+        for future in as_completed(futures):
+            partial_result = future.result()
+            merge_dicts(merged_results, partial_result)
 
-if __name__ == "__main__":
-    a = perf_counter()
+    write_output(merged_results, output_file)
+    print("Total processing time:", perf_counter() - start_total)
+
+if __name__ == '__main__':
     main()
-    print(perf_counter() - a)
