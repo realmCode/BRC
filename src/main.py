@@ -78,10 +78,9 @@ def process_chunk_threaded(lines, thread_workers=8):
     return merged_local
 
 def write_output(merged, output_file):
-    """
-    Write the merged results to the output file. Keys are decoded from bytes to UTF-8.
-    """
-    with open(output_file, "w") as f:
+    if os.path.exists("output.txt"):
+        os.remove("output.txt")
+    with open(output_file, "a+") as f:
         for key in sorted(merged.keys(), key=lambda k: k.decode('utf-8')):
             rec = merged[key]
             mean_val = rec[3] / rec[2]
@@ -96,7 +95,7 @@ def main(input_file="testcase.txt", output_file="output.txt", proc_workers=None,
     start_total = perf_counter()
     merged_results = {}
 
-    #  fucking nested processing processpool as parent of threadpool
+    # fucking nested threading to fuck/ this skibidi
     with ProcessPoolExecutor(max_workers=proc_workers) as proc_executor:
         futures = []
         for chunk in chunked_reader(input_file, chunk_size):
