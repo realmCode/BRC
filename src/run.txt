@@ -1,0 +1,1 @@
+ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test_manual.ps1 

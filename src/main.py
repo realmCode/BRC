@@ -73,11 +73,9 @@ def main():
     chunk_size = filesize // num_workers
 
     # Compute chunk offsets.
-    offsets = []
-    for i in range(num_workers):
-        start = i * chunk_size
-        end = (i + 1) * chunk_size if i < num_workers - 1 else filesize
-        offsets.append((start, end))
+    # list comphrehesion is father of for loop
+    offsets = [( i * chunk_size, (i + 1) * chunk_size if i < num_workers - 1 else filesize) for i in range(num_workers)]
+
     
     # CORPORATE RULE: if one woman can give birth in 9 months, then 9 woman can give birth in 1 month
     # multi fucking skibidi
@@ -89,8 +87,10 @@ def main():
     for city in sorted(global_stats.keys()):
         gmin, gmax, gsum, gcount = global_stats[city]
         mean = gsum / gcount
-        out_line = f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}"
-        out_lines.append(out_line)
+        # out_line = f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}"
+        # out_lines.append(out_line)
+        # let not store in var
+        out_lines.append(f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}")
 
     with open(output_filename, "w") as outf:
         outf.write("\n".join(out_lines))
