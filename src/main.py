@@ -96,8 +96,8 @@ def main():
         outf.write("\n".join(out_lines))
 
 if __name__ == "__main__":
-    from time import perf_counter
-    a = perf_counter()
-    print("started")
+    # from time import perf_counter
+    # a = perf_counter()
+    # print("started")
     main()
-    print(perf_counter()-a)
+    # print(perf_counter()-a)
