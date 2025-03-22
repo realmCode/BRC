@@ -83,9 +83,7 @@ def main():
     # multi fucking skibidi
     with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
         futures = [executor.submit(process_chunk, input_filename, start, end)for start, end in offsets]
-        results = [future.result() for future in concurrent.futures.as_completed(futures)]
-    
-    global_stats = merge_dicts(results)
+        global_stats = merge_dicts( [future.result() for future in concurrent.futures.as_completed(futures)])
 
     out_lines = []
     for city in sorted(global_stats.keys()):
@@ -98,7 +96,8 @@ def main():
         outf.write("\n".join(out_lines))
 
 if __name__ == "__main__":
-    # from time import perf_counter
-    # a = perf_counter()
+    from time import perf_counter
+    a = perf_counter()
+    print("started")
     main()
-    # print(perf_counter()-a)
+    print(perf_counter()-a)
