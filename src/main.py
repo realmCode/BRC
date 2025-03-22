@@ -3,6 +3,8 @@ import mmap
 import math
 import concurrent.futures
 
+
+# colonal : divinde and rule
 def process_chunk(filename, start, end):
     local_stats = {}
     with open(filename, "rb") as f:
