@@ -32,7 +32,6 @@ def process_chunk(filename, start, end):
     for line in chunk.splitlines():
         if not line:
             continue
-        
         city, sep, num_str = line.partition(';')
         value = float(num_str)
         if city in local_stats:
