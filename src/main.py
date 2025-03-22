@@ -93,14 +93,13 @@ def main():
     #     out_lines.append(f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(mean):.1f}/{round_to_infinity(gmax):.1f}")
 
     #again fucking list comphrehension
-    
-    out_lines = [
-        f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(gsum/gcount):.1f}/{round_to_infinity(gmax):.1f}"
-        for city, (gmin, gmax, gsum, gcount) in sorted(global_stats.items())
-    ]
+    if os.path.exists("output.txt"):
+        os.remove("output.txt")
+    with open(output_filename, "a+") as outf:
+        for city in sorted(global_stats.keys()):
+            gmin, gmax, gsum, gcount = global_stats[city]
+            outf.write(f"{city}={round_to_infinity(gmin):.1f}/{round_to_infinity(gsum/gcount):.1f}/{round_to_infinity(gmax):.1f}\n")
 
-    with open(output_filename, "w") as outf:
-        outf.write("\n".join(out_lines))
 
 if __name__ == "__main__":
     # from time import perf_counter
