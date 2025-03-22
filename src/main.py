@@ -9,6 +9,7 @@ def round_to_infinity(x):
 
 def merge_dicts(target, source):
     """
+    
     Merge source dictionary into target. Each dictionary maps keys to [min, max, count, sum].
     """
     for key, rec in source.items():
